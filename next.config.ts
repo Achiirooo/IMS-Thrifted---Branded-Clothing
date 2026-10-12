@@ -1,9 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
-  cacheComponents: true,
-  partialPrefetching: true,
+  // Keep classic (non-Cache-Components) rendering: auth pages read cookies
+  // and must render per request, and redirect() then returns real HTTP
+  // redirects, which is simpler for this school project.
+  cacheComponents: false,
   turbopack: {
     rules: {
       "*.css": {

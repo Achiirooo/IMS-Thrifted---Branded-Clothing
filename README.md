@@ -1,36 +1,56 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SQ-Way — Inventory Management System for Thrifted & Branded Surplus Clothing
 
-## Getting Started
+School project (Weeks 4–14). **This repository currently contains the Week 8 deliverables**
+(WBS 3.1.1 Database Tables & Login, 3.1.2 Role-Based Access Control, 3.1.3 New Items = Pending).
 
-First, run the development server:
+Built with Next.js 16 (App Router, TypeScript, Tailwind CSS), Prisma + SQLite, iron-session, and Zod.
+
+## Setup
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npx prisma migrate dev     # creates prisma/dev.db and applies the schema
+npx prisma db seed         # creates the three test users below
+npm run dev                # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Environment variables (already present in `.env` for local dev):
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- `DATABASE_URL="file:./dev.db"` — SQLite file, stored inside `prisma/`.
+- `SESSION_SECRET` — used by iron-session to encrypt the session cookie (min 32 chars).
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Seeded test accounts
 
-## Learn More
+| Role     | Username   | Password     | Can do                                    |
+| -------- | ---------- | ------------ | ----------------------------------------- |
+| STAFF    | `staff1`   | `staff123`   | Add items, view only their own items      |
+| REVIEWER | `reviewer1`| `reviewer123`| View all items (approval comes Week 9)    |
+| ADMIN    | `admin1`   | `admin123`   | Everything                                |
 
-To learn more about Next.js, take a look at the following resources:
+## How access control works
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. **`src/proxy.ts`** (Next.js 16's replacement for `middleware.ts`) — optimistic check: anyone
+   without a valid session cookie is redirected to `/login`.
+2. **`requireRole(...roles)` in `src/lib/auth.ts`** — the real, server-side check. Every protected
+   page and server action calls it, so hidden buttons are never the only protection. A logged-in
+   user with the wrong role is redirected to **`/forbidden`** ("Not allowed").
+3. **Dashboard** — shows only the links the logged-in role may use.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Pages
 
-## Deploy on Vercel
+| Route         | Who                                         | What                                                     |
+| ------------- | ------------------------------------------- | -------------------------------------------------------- |
+| `/login`      | everyone                                    | Log in (server action, Zod-validated)                    |
+| `/dashboard`  | logged-in users                             | Role-based links + logout                                |
+| `/items/new`  | STAFF, ADMIN                                | Add item form; saved as **Pending** with a StatusLog row |
+| `/items`      | STAFF, REVIEWER, ADMIN                      | List: STAFF sees own items, others see all               |
+| `/forbidden`  | logged-in users with a wrong role           | 403 "Not allowed" page                                   |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Every new item is written in one transaction: the `Item` (status `Pending`, `createdById`
+set) plus a `StatusLog` row (`null → Pending`) so the status history starts at creation.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Out of scope (Week 9 and later)
+
+- Approval queue / reviewer actions (Approved, Rejected)
+- Sales (Sold) and stock tracking
+- Reports

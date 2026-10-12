@@ -1,0 +1,52 @@
+// Prisma schema for SQ-Way Inventory Management System
+// SQLite does not support enums, so role and status are plain strings.
+// Allowed values are documented here and enforced in app code:
+//   role:   STAFF | REVIEWER | ADMIN
+//   status: Pending | Approved | Rejected | In Stock | Sold
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int         @id @default(autoincrement())
+  username     String      @unique
+  passwordHash String
+  role         String
+  createdAt    DateTime    @default(now())
+  items        Item[]      @relation("ItemCreatedBy")
+  statusLogs   StatusLog[] @relation("StatusLogChangedBy")
+}
+
+model Item {
+  id          Int         @id @default(autoincrement())
+  name        String
+  brand       String
+  category    String
+  size        String
+  condition   String
+  price       Float
+  quantity    Int
+  status      String      @default("Pending")
+  createdById Int
+  createdBy   User        @relation("ItemCreatedBy", fields: [createdById], references: [id])
+  createdAt   DateTime    @default(now())
+  statusLogs  StatusLog[]
+}
+
+model StatusLog {
+  id          Int      @id @default(autoincrement())
+  itemId      Int
+  item        Item     @relation(fields: [itemId], references: [id])
+  oldStatus   String?
+  newStatus   String
+  changedById Int
+  changedBy   User     @relation("StatusLogChangedBy", fields: [changedById], references: [id])
+  reason      String?
+  changedAt   DateTime @default(now())
+}
