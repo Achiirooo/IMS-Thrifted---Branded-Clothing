@@ -9,16 +9,35 @@ async function main() {
   const passwordHash = (pw: string) => bcrypt.hashSync(pw, 10);
 
   const users = [
-    { username: "staff1", passwordHash: passwordHash("staff123"), role: "STAFF" },
-    { username: "reviewer1", passwordHash: passwordHash("reviewer123"), role: "REVIEWER" },
-    { username: "admin1", passwordHash: passwordHash("admin123"), role: "ADMIN" },
+    {
+      username: "staff1",
+      displayName: "Jhezl Baldos",
+      passwordHash: passwordHash("staff123"),
+      role: "STAFF",
+    },
+    {
+      username: "reviewer1",
+      displayName: "Jessa Bebita",
+      passwordHash: passwordHash("reviewer123"),
+      role: "REVIEWER",
+    },
+    {
+      username: "admin1",
+      displayName: "Dave Briones",
+      passwordHash: passwordHash("admin123"),
+      role: "ADMIN",
+    },
   ];
 
   for (const user of users) {
     // upsert keeps the seed safe to re-run without duplicate username errors
     await prisma.user.upsert({
       where: { username: user.username },
-      update: { role: user.role, passwordHash: user.passwordHash },
+      update: {
+        displayName: user.displayName,
+        role: user.role,
+        passwordHash: user.passwordHash,
+      },
       create: user,
     });
     console.log(`Seeded ${user.role}: ${user.username}`);

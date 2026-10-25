@@ -1,26 +1,85 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ---------------------------------------------------------------
+   Design tokens — warm paper + terracotta, matching the IMS mockup.
+   Keeping `color-scheme: light` prevents the OS dark theme from
+   inverting form controls (the old starter CSS caused black-on-black).
+---------------------------------------------------------------- */
+@theme {
+  --color-paper: #faf3e6;
+  --color-panel: #f3e6cf;
+  --color-panel-hover: #f8eeda;
+  --color-card: #fffcf5;
+  --color-line: #e5d6bc;
+  --color-line-soft: #efe4d0;
+  --color-ink: #2e2922;
+  --color-muted: #8a7a66;
+
+  --color-brand: #c1440e;
+  --color-brand-dark: #a3380b;
+  --color-brand-soft: #f7e3d5;
+
+  --color-good: #3e7a3f;
+  --color-good-soft: #e4efda;
+  --color-warn: #a9720e;
+  --color-warn-soft: #fbefd0;
+  --color-danger: #b3261e;
+  --color-danger-soft: #fbe3e0;
+  --color-info: #3f5a80;
+  --color-info-soft: #e3e9f3;
+  --color-neutral: #6b6156;
+  --color-neutral-soft: #ede5d8;
+  --color-role-admin: #5b3e96;
+  --color-role-admin-soft: #eae4f7;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-playfair), Georgia, "Times New Roman", serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+@layer base {
+  html {
+    color-scheme: light;
+    -webkit-tap-highlight-color: transparent;
+  }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  body {
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+  }
+
+  ::selection {
+    background-color: var(--color-brand-soft);
+    color: var(--color-brand-dark);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  /* A card surface used by panels, tables and forms. */
+  .card {
+    @apply rounded-2xl border border-line bg-card;
+  }
+
+  /* Small uppercase label above values ("IN STOCK", "MENU"). */
+  .label-caps {
+    @apply text-[10px] font-semibold uppercase tracking-[0.16em] text-muted;
+  }
+
+  /* Text/number input used on forms and the filter bar. */
+  .field {
+    @apply w-full rounded-xl border border-line bg-card px-4 py-3 text-sm text-ink outline-none transition
+      placeholder:text-muted/70 focus:border-brand/50 focus:ring-2 focus:ring-brand/15;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-5 py-3 text-sm font-semibold
+      text-white transition hover:bg-brand-dark focus:outline-none focus:ring-2 focus:ring-brand/30
+      disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-line bg-card px-4 py-2.5
+      text-sm font-medium text-ink transition hover:bg-panel-hover focus:outline-none focus:ring-2
+      focus:ring-brand/15 disabled:cursor-not-allowed disabled:opacity-50;
+  }
 }

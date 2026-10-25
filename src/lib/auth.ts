@@ -9,6 +9,7 @@ import type { Role } from "./constants";
 export interface SessionUser {
   userId: number;
   username: string;
+  displayName: string;
   role: Role;
 }
 
@@ -30,6 +31,7 @@ export async function requireRole(...roles: Role[]): Promise<SessionUser> {
   return {
     userId: session.userId,
     username: session.username ?? "unknown",
+    displayName: session.displayName ?? session.username ?? "Unknown user",
     role: session.role as Role,
   };
 }
@@ -41,6 +43,7 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
   return {
     userId: session.userId,
     username: session.username ?? "unknown",
+    displayName: session.displayName ?? session.username ?? "Unknown user",
     role: session.role as Role,
   };
 }

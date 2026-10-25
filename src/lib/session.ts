@@ -5,6 +5,8 @@ import { cookies } from "next/headers";
 export interface SessionData {
   userId?: number;
   username?: string;
+  // Friendly name for the UI; falls back to `username` for older cookies.
+  displayName?: string;
   role?: string;
 }
 

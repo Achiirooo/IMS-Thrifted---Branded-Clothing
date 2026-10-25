@@ -16,6 +16,8 @@ datasource db {
 model User {
   id           Int         @id @default(autoincrement())
   username     String      @unique
+  // Shown in the UI ("Jhezl Baldos"); username is still what people log in with.
+  displayName  String?
   passwordHash String
   role         String
   createdAt    DateTime    @default(now())
@@ -24,19 +26,20 @@ model User {
 }
 
 model Item {
-  id          Int         @id @default(autoincrement())
-  name        String
-  brand       String
-  category    String
-  size        String
-  condition   String
-  price       Float
-  quantity    Int
-  status      String      @default("Pending")
-  createdById Int
-  createdBy   User        @relation("ItemCreatedBy", fields: [createdById], references: [id])
-  createdAt   DateTime    @default(now())
-  statusLogs  StatusLog[]
+  id              Int         @id @default(autoincrement())
+  name            String
+  brand           String
+  category        String
+  size            String
+  condition       String
+  price           Float
+  quantity        Int
+  status          String      @default("Pending")
+  rejectionReason String?
+  createdById     Int
+  createdBy       User        @relation("ItemCreatedBy", fields: [createdById], references: [id])
+  createdAt       DateTime    @default(now())
+  statusLogs      StatusLog[]
 }
 
 model StatusLog {

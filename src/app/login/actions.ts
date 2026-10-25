@@ -41,6 +41,7 @@ export async function login(
   const session = await getSession();
   session.userId = user.id;
   session.username = user.username;
+  session.displayName = user.displayName ?? user.username;
   session.role = user.role;
   await session.save();
 
