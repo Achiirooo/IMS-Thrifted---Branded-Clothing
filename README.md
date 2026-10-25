@@ -1,8 +1,7 @@
 # SQ-Way — Inventory Management System for Thrifted & Branded Surplus Clothing
 
-School project (Weeks 4–14). **This repository currently contains the Week 8–9 deliverables**
-(WBS 3.1.1 Database Tables & Login, 3.1.2 Role-Based Access Control, 3.1.3 New Items = Pending,
-and 3.2.1–3.2.3 Pending queue with approve/reject and status transition logic).
+School project (Weeks 4–14). **This repository currently contains the Week 8–10 deliverables**
+(WBS 3.1 intake/auth, 3.2 approval workflow, and 4.1–4.2 sales, stock, search, and reports).
 
 Built with Next.js 16 (App Router, TypeScript, Tailwind CSS), Prisma + SQLite, iron-session, and Zod.
 
@@ -38,11 +37,11 @@ Environment variables (already present in `.env` for local dev):
 
 ## Seeded test accounts
 
-| Role     | Username   | Password     | Display name   | Can do                                    |
-| -------- | ---------- | ------------ | -------------- | ----------------------------------------- |
-| STAFF    | `staff1`   | `staff123`   | Jhezl Baldos   | Add items, view only their own items      |
-| REVIEWER | `reviewer1`| `reviewer123`| Jessa Bebita   | View all items; approve or reject Pending items |
-| ADMIN    | `admin1`   | `admin123`   | Dave Briones   | Everything                                |
+| Role     | Username   | Password     | Display name   | Can do                                             |
+| -------- | ---------- | ------------ | -------------- | -------------------------------------------------- |
+| STAFF    | `staff1`   | `staff123`   | Jhezl Baldos   | Add items, view own items, sell In Stock items      |
+| REVIEWER | `reviewer1`| `reviewer123`| Jessa Bebita   | Work the Pending queue; approve or reject items     |
+| ADMIN    | `admin1`   | `admin123`   | Dave Briones   | Search inventory, low-stock alerts, status reports  |
 
 `User.displayName` is what the UI shows; `username` is still the login identifier. The login page
 lists these accounts as temporary demo cards that fill in the credentials for you.
@@ -61,11 +60,13 @@ lists these accounts as temporary demo cards that fill in the credentials for yo
 | Route            | Who                               | What                                                      |
 | ---------------- | --------------------------------- | --------------------------------------------------------- |
 | `/login`         | everyone                          | Log in (server action, Zod-validated) + demo account cards |
-| `/dashboard`     | logged-in users                   | Welcome panel + role-based quick actions                  |
-| `/items`         | STAFF, REVIEWER, ADMIN            | Inventory: stats, filters, search (STAFF sees own items)  |
-| `/items/new`     | STAFF, ADMIN                      | Add item form; saved as **Pending** with a StatusLog row  |
-| `/items/[id]`    | STAFF (own items), REVIEWER, ADMIN| Item details + status history                             |
-| `/pending-queue` | REVIEWER, ADMIN                   | The same inventory table, locked to `Pending`             |
+| `/dashboard`     | logged-in users                   | Role-based quick actions, Admin stats and low-stock alerts |
+| `/items`         | STAFF, ADMIN                      | Inventory search (STAFF sees only their own items)        |
+| `/items/new`     | STAFF                             | Add item form; saved as **Pending** with a StatusLog row  |
+| `/items/[id]`    | STAFF (own), REVIEWER, ADMIN      | Item details + status history                             |
+| `/pending-queue` | REVIEWER                          | The same inventory table, locked to `Pending`             |
+| `/sales`         | STAFF                             | Sale/checkout for **In Stock** items only                 |
+| `/reports`       | ADMIN                             | Status totals, rejection reasons, and status history      |
 | `/forbidden`     | logged-in users with a wrong role | 403 "Not allowed" page                                    |
 
 Every new item is written in one transaction: the `Item` (status `Pending`, `createdById`
@@ -80,9 +81,37 @@ A Reviewer opens `/pending-queue`, picks an item, and records the decision on th
   (`Item.rejectionReason`) and in the status history (`Pending → Pending`).
 
 Rejected items stay in the Pending queue so they can be re-inspected and approved later.
-Only `In Stock` items will be sellable once sales land in Week 10.
 
-## Out of scope (Week 10 and later)
+## Sales & stock
 
-- Sales (Sold) and stock tracking
-- Reports
+`/sales` lists every `In Stock` item and records a sale in one transaction:
+
+- The Status Guard Rule is enforced in the query (`where status = "In Stock"`), so Pending and
+  Sold items cannot be sold even through a direct POST.
+- A sale writes `In Stock → Sold` to `StatusLog` with the Staff user and timestamp.
+- The Admin dashboard shows stock totals and **low-stock alerts** for categories with
+  `LOW_STOCK_THRESHOLD` (5) or fewer In Stock items.
+
+## Reports
+
+`/reports` (Admin only) shows the current totals for Pending / In Stock / Sold, the revenue from
+sold items, the rejection reason recorded on each item, and the latest 50 status changes.
+
+## Test data
+
+`npm run db:seed:items` creates the 2,000-item dataset used for the performance and search
+checks. It refuses to run when items already exist; pass `--force` to clear items first:
+
+```bash
+npm run db:seed:items -- --force
+```
+
+## Testing
+
+Manual test cases are in [TEST-CASES.md](./TEST-CASES.md), traced to the Test Plan scenarios
+IMS-01 to IMS-15. The Postman/Newman collection is still to be built in Week 11.
+
+## Out of scope (Week 11 and later)
+
+- Postman collection and API endpoints
+- Acceptance testing, deployment, and final documentation

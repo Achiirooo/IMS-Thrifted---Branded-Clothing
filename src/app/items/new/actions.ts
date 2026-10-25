@@ -14,7 +14,6 @@ const itemSchema = z.object({
   size: z.string().trim().min(1, "Size is required"),
   condition: z.string().trim().min(1, "Condition is required"),
   price: z.coerce.number().positive("Price must be greater than 0"),
-  quantity: z.coerce.number().int().positive("Quantity must be at least 1"),
 });
 
 export interface CreateItemState {
@@ -26,9 +25,9 @@ export async function createItem(
   _prevState: CreateItemState | null,
   formData: FormData,
 ): Promise<CreateItemState> {
-  // Only STAFF and ADMIN may add items. This is the server-side check;
-  // hiding the link on the dashboard is not enough.
-  const user = await requireRole("STAFF", "ADMIN");
+  // Only STAFF may add items. This is the server-side check; hiding the
+  // link on the dashboard is not enough.
+  const user = await requireRole("STAFF");
 
   const parsed = itemSchema.safeParse({
     name: formData.get("name"),
@@ -37,7 +36,6 @@ export async function createItem(
     size: formData.get("size"),
     condition: formData.get("condition"),
     price: formData.get("price"),
-    quantity: formData.get("quantity"),
   });
 
   if (!parsed.success) {

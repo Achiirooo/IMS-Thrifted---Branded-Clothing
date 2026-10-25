@@ -47,9 +47,9 @@ export async function reviewItem(
   _prevState: ReviewState | null,
   formData: FormData,
 ): Promise<ReviewState> {
-  // The real guard: STAFF and anonymous callers are redirected, even on a
-  // direct POST. Never rely on the panel being hidden in the UI.
-  const user = await requireRole("REVIEWER", "ADMIN");
+  // The real guard: STAFF, ADMIN and anonymous callers are redirected, even
+  // on a direct POST. Never rely on the panel being hidden in the UI.
+  const user = await requireRole("REVIEWER");
 
   const parsed = reviewSchema.safeParse({
     itemId: formData.get("itemId"),

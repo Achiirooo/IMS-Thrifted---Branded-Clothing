@@ -130,7 +130,7 @@ export async function InventoryView({
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const created = first(searchParams.created);
-  const canAdd = user.role === "STAFF" || user.role === "ADMIN";
+  const canAdd = user.role === "STAFF";
   const filtered = Boolean(q || status || size || condition || hasPriceFilter);
 
   function hrefFor(next: { page?: number }) {

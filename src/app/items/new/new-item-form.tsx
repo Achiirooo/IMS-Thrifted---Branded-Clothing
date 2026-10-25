@@ -10,7 +10,6 @@ const FIELDS = [
   { name: "size", label: "Size", type: "text", span: "", placeholder: "e.g. M" },
   { name: "condition", label: "Condition", type: "text", span: "", placeholder: "e.g. Excellent" },
   { name: "price", label: "Price (₱)", type: "number", span: "", placeholder: "0.00" },
-  { name: "quantity", label: "Quantity", type: "number", span: "", placeholder: "1" },
 ] as const;
 
 export default function NewItemForm() {

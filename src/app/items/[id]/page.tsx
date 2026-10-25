@@ -63,8 +63,11 @@ export default async function ItemDetailsPage({
     redirect("/forbidden");
   }
 
-  // Only reviewers and admins decide, and only while the item is Pending.
-  const canReview = user.role !== "STAFF" && item.status === "Pending";
+  // Only a Reviewer decides, and only while the item is Pending.
+  const canReview = user.role === "REVIEWER" && item.status === "Pending";
+  const backHref = user.role === "REVIEWER" ? "/pending-queue" : "/items";
+  const backLabel =
+    user.role === "REVIEWER" ? "Back to pending queue" : "Back to inventory";
 
   return (
     <AppShell
@@ -72,9 +75,9 @@ export default async function ItemDetailsPage({
       title={item.brand}
       subtitle={`${item.name} · ITM-${String(item.id).padStart(3, "0")}`}
       actions={
-        <Link href="/items" className="btn-ghost gap-1.5 py-2.5 text-[12.5px]">
+        <Link href={backHref} className="btn-ghost gap-1.5 py-2.5 text-[12.5px]">
           <ChevronLeftIcon className="h-4 w-4" />
-          Back to inventory
+          {backLabel}
         </Link>
       }
     >
@@ -91,7 +94,6 @@ export default async function ItemDetailsPage({
             <Field label="Size">{item.size}</Field>
             <Field label="Condition">{item.condition}</Field>
             <Field label="Price">{money(item.price)}</Field>
-            <Field label="Quantity">{item.quantity}</Field>
             <Field label="Added by">
               {item.createdBy.displayName ?? item.createdBy.username}
             </Field>

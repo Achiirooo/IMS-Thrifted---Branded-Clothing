@@ -9,8 +9,8 @@ export default async function ItemsPage({
 }: {
   searchParams: Promise<SearchParams>;
 }) {
-  // All three roles may open the list; the query is scoped inside the view.
-  const user = await requireRole("STAFF", "REVIEWER", "ADMIN");
+  // STAFF see only their own items; ADMIN searches the whole inventory.
+  const user = await requireRole("STAFF", "ADMIN");
 
   return <InventoryView user={user} searchParams={await searchParams} />;
 }

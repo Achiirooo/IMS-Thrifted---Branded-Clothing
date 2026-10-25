@@ -80,7 +80,7 @@ The schema lives in `prisma/schema.prisma` and contains three models:
 
 - **`User`** — `username` (unique, used to log in), `displayName` (shown in the UI), `passwordHash`,
   `role` (`STAFF` / `REVIEWER` / `ADMIN`).
-- **`Item`** — name, brand, category, size, condition, price, quantity, `status`, `rejectionReason`, and `createdById`.
+- **`Item`** — name, brand, category, size, condition, price, `status`, `rejectionReason`, and `createdById`.
 - **`StatusLog`** — audit trail of status changes (`oldStatus` → `newStatus`, who, when, reason).
 
 SQLite has no enum type, so `role` and `status` are plain strings validated in app code
@@ -95,6 +95,7 @@ SQLite has no enum type, so `role` and `status` are plain strings validated in a
 | `20261012065650_init`              | Creates `User`, `Item`, `StatusLog`.  |
 | `20261020235943_add_user_display_name` | Adds the `User.displayName` column. |
 | `20261025112017_add_item_rejection_reason` | Adds the `Item.rejectionReason` column. |
+| `20261025130000_week10_sales_stock_reports` | Drops `Item.quantity`; adds search/stock/report indexes. |
 
 Common commands:
 
@@ -131,9 +132,9 @@ migrations: { seed: "npx tsx prisma/seed.ts" }
 
 | Role     | Username    | Password      | Display name | Can do                                       |
 | -------- | ----------- | ------------- | ------------ | -------------------------------------------- |
-| STAFF    | `staff1`    | `staff123`    | Jhezl Baldos | Add items, view only their own items         |
-| REVIEWER | `reviewer1` | `reviewer123` | Jessa Bebita | View all items; approve or reject Pending items |
-| ADMIN    | `admin1`    | `admin123`    | Dave Briones | Everything                                   |
+| STAFF    | `staff1`    | `staff123`    | Jhezl Baldos | Add items, view own items, sell In Stock items |
+| REVIEWER | `reviewer1` | `reviewer123` | Jessa Bebita | Work the Pending queue; approve or reject items |
+| ADMIN    | `admin1`    | `admin123`    | Dave Briones | Search inventory, low-stock alerts, status reports |
 
 The login page shows these as demo cards that fill in the credentials for you. They are
 **development-only** accounts — do not use them anywhere real.
@@ -150,6 +151,7 @@ Every script in `package.json`:
 | `npm run lint`      | `eslint`                   | Lint the codebase.                             |
 | `npm run db:migrate`| `prisma migrate dev`       | Shortcut for applying migrations.              |
 | `npm run db:seed`   | `prisma db seed`           | Shortcut for re-seeding demo users.            |
+| `npm run db:seed:items` | `tsx prisma/seed-items.ts` | Create the 2,000-item test dataset (add `-- --force` to reset). |
 
 ## Verify the install
 
@@ -159,7 +161,13 @@ Every script in `package.json`:
 4. It appears in `/items` with a **Pending** badge.
 5. Sign out, sign in as `reviewer1` / `reviewer123`, and open `/pending-queue` — the item is
    listed there.
-6. Sign in as `admin1` / `admin123` and confirm `/items` shows every item.
+6. Approve the item and confirm its status becomes **In Stock**.
+7. Sign in as `staff1` again, open `/sales`, and sell the item — it becomes **Sold** and the
+   status history shows `In Stock → Sold`.
+8. Sign in as `admin1` / `admin123` and confirm `/items` shows every item, `/dashboard` shows
+   low-stock alerts, and `/reports` shows the totals and history.
+9. (Optional) `npm run db:seed:items -- --force` and repeat the Admin search to check the
+   2,000-item dataset.
 
 If step 3 fails, check the terminal for Prisma errors and confirm `.env` exists.
 
@@ -182,6 +190,7 @@ If step 3 fails, check the terminal for Prisma errors and confirm `.env` exists.
 prisma/
   schema.prisma        Data models (User, Item, StatusLog)
   seed.ts              Demo accounts
+  seed-items.ts        2,000-item test dataset (IMS-15)
   migrations/          Applied migration history
   dev.db               Local SQLite database (gitignored)
 src/
@@ -189,7 +198,9 @@ src/
     login/             Login page, form, server action
     dashboard/         Role-based landing page
     items/             Inventory list, detail, and "new item" form + action
-    pending-queue/     Reviewer/Admin view locked to Pending
+    pending-queue/     Reviewer queue locked to Pending
+    sales/             Sale/checkout screen (In Stock only)
+    reports/           Admin status reports
     forbidden/         403 page for wrong-role access
     globals.css        Tailwind theme tokens
   components/          App shell, nav, inventory widgets, badges

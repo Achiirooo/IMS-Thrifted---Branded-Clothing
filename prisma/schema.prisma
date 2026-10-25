@@ -33,13 +33,16 @@ model Item {
   size            String
   condition       String
   price           Float
-  quantity        Int
   status          String      @default("Pending")
   rejectionReason String?
   createdById     Int
   createdBy       User        @relation("ItemCreatedBy", fields: [createdById], references: [id])
   createdAt       DateTime    @default(now())
   statusLogs      StatusLog[]
+
+  @@index([status])
+  @@index([brand, size])
+  @@index([price])
 }
 
 model StatusLog {
@@ -52,4 +55,7 @@ model StatusLog {
   changedBy   User     @relation("StatusLogChangedBy", fields: [changedById], references: [id])
   reason      String?
   changedAt   DateTime @default(now())
+
+  @@index([itemId, changedAt])
+  @@index([changedAt])
 }

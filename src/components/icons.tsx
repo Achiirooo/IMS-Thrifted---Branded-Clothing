@@ -151,3 +151,12 @@ export const InboxIcon = (p: IconProps) => (
     <path d="M4 13.5 6.5 5h11L20 13.5h-4.5a3.5 3.5 0 0 1-7 0H4Z" />
   </Base>
 );
+
+export const ChartIcon = (p: IconProps) => (
+  <Base {...p}>
+    <path d="M4 20V11" />
+    <path d="M10 20V5" />
+    <path d="M16 20v-6" />
+    <path d="M2 20h20" />
+  </Base>
+);

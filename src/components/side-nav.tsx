@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { Role } from "@/lib/constants";
-import { ClockIcon, GridIcon, HomeIcon, PlusIcon } from "@/components/icons";
+import { ChartIcon, ClockIcon, GridIcon, HomeIcon, PlusIcon, BagIcon } from "@/components/icons";
 
 type NavItem = {
   href: string;
@@ -17,17 +17,16 @@ const NAV: Record<Role, NavItem[]> = {
     { href: "/dashboard", label: "Dashboard", icon: HomeIcon },
     { href: "/items", label: "Inventory", icon: GridIcon },
     { href: "/items/new", label: "Add Item", icon: PlusIcon },
+    { href: "/sales", label: "Sales", icon: BagIcon },
   ],
   REVIEWER: [
     { href: "/dashboard", label: "Dashboard", icon: HomeIcon },
-    { href: "/items", label: "Inventory", icon: GridIcon },
     { href: "/pending-queue", label: "Pending Queue", icon: ClockIcon },
   ],
   ADMIN: [
     { href: "/dashboard", label: "Dashboard", icon: HomeIcon },
     { href: "/items", label: "Inventory", icon: GridIcon },
-    { href: "/pending-queue", label: "Pending Queue", icon: ClockIcon },
-    { href: "/items/new", label: "Add Item", icon: PlusIcon },
+    { href: "/reports", label: "Reports", icon: ChartIcon },
   ],
 };
 

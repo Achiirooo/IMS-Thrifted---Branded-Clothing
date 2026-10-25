@@ -4,10 +4,10 @@ import { AppShell } from "@/components/app-shell";
 import { ChevronLeftIcon } from "@/components/icons";
 import NewItemForm from "./new-item-form";
 
-// Page-level guard: reviewers get redirected to /forbidden.
+// Page-level guard: reviewers and admins get redirected to /forbidden.
 // The server action (actions.ts) checks the role again.
 export default async function NewItemPage() {
-  const user = await requireRole("STAFF", "ADMIN");
+  const user = await requireRole("STAFF");
 
   return (
     <AppShell
