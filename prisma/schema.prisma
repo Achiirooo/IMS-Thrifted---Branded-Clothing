@@ -38,6 +38,7 @@ model Item {
   createdById     Int
   createdBy       User        @relation("ItemCreatedBy", fields: [createdById], references: [id])
   createdAt       DateTime    @default(now())
+  imageUrl        String?
   statusLogs      StatusLog[]
 
   @@index([status])

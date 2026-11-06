@@ -20,6 +20,7 @@ export const itemInputSchema = z.object({
   size: z.string().trim().min(1, "Size is required"),
   condition: z.string().trim().min(1, "Condition is required"),
   price: z.coerce.number().positive("Price must be greater than 0"),
+  imageUrl: z.string().trim().optional().or(z.literal("")),
 });
 
 export type ItemInput = z.infer<typeof itemInputSchema>;
@@ -52,6 +53,7 @@ export async function createItem(
     const created = await tx.item.create({
       data: {
         ...parsed.data,
+        imageUrl: parsed.data.imageUrl || null,
         status: "Pending",
         createdById: userId,
       },

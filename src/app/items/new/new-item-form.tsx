@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { createItem, type CreateItemState } from "./actions";
 
 const FIELDS = [
@@ -17,6 +17,7 @@ export default function NewItemForm() {
     createItem,
     null,
   );
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   return (
     <form action={formAction} className="card p-6">
@@ -45,6 +46,42 @@ export default function NewItemForm() {
             )}
           </div>
         ))}
+
+        <div className="sm:col-span-2">
+          <label
+            htmlFor="image"
+            className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.12em] text-muted"
+          >
+            Photo (optional)
+          </label>
+          <input
+            id="image"
+            name="image"
+            type="file"
+            accept="image/*"
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              if (file) {
+                setImagePreview(URL.createObjectURL(file));
+              }
+            }}
+            className="field"
+          />
+          {imagePreview && (
+            <div className="mt-2">
+              <img
+                src={imagePreview}
+                alt="Preview"
+                className="w-32 h-32 object-cover rounded-lg border border-line"
+              />
+            </div>
+          )}
+          {state?.fieldErrors?.image && (
+            <p className="mt-1.5 text-[12px] text-danger">
+              {state.fieldErrors.image[0]}
+            </p>
+          )}
+        </div>
       </div>
 
       {state?.error && (

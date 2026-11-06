@@ -88,6 +88,16 @@ export default async function ItemDetailsPage({
             <StatusBadge status={item.status} />
           </div>
 
+          {item.imageUrl && (
+            <div className="mt-4">
+              <img
+                src={item.imageUrl}
+                alt={`Photo of ${item.name}`}
+                className="w-full h-48 object-cover rounded-xl border border-line"
+              />
+            </div>
+          )}
+
           <div className="mt-6 grid gap-x-6 gap-y-5 sm:grid-cols-2">
             <Field label="Brand">{item.brand}</Field>
             <Field label="Category">{item.category}</Field>

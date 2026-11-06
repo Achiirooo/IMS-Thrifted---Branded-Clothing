@@ -3,6 +3,8 @@
 import { redirect } from "next/navigation";
 import { requireRole } from "@/lib/auth";
 import { createItem as createItemRecord } from "@/lib/services/items";
+import { writeFile } from "fs/promises";
+import { join } from "path";
 
 export interface CreateItemState {
   error?: string;
@@ -13,9 +15,20 @@ export async function createItem(
   _prevState: CreateItemState | null,
   formData: FormData,
 ): Promise<CreateItemState> {
-  // Only STAFF may add items. This is the server-side check; hiding the
-  // link on the dashboard is not enough.
   const user = await requireRole("STAFF");
+
+  const imageFile = formData.get("image") as File | null;
+  let imageUrl: string | null = null;
+
+  if (imageFile && imageFile.size > 0) {
+    const bytes = await imageFile.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+    const safeName = imageFile.name.replace(/[^a-zA-Z0-9.\-_]/g, "_");
+    const fileName = `${Date.now()}-${safeName}`;
+    const uploadDir = join(process.cwd(), "public", "uploads");
+    await writeFile(join(uploadDir, fileName), buffer);
+    imageUrl = `/uploads/${fileName}`;
+  }
 
   const result = await createItemRecord(
     {
@@ -25,6 +38,7 @@ export async function createItem(
       size: formData.get("size"),
       condition: formData.get("condition"),
       price: formData.get("price"),
+      imageUrl,
     },
     user.userId,
   );
@@ -33,6 +47,5 @@ export async function createItem(
     return { fieldErrors: result.fieldErrors };
   }
 
-  // Success: land on the list page with a confirmation banner.
   redirect(`/items?created=${result.item.id}`);
 }
