@@ -1,0 +1,62 @@
+name: System tests
+
+# Runs the Postman/Newman system tests for both modules against a fresh test
+# database. Reports are uploaded as artifacts on every run, pass or fail.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: system-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  system-tests:
+    name: Postman / Newman
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      # .env.test is gitignored, so CI supplies the two variables directly.
+      # Next.js reads process.env before any .env file.
+      DATABASE_URL: file:./test.db
+      SESSION_SECRET: ${{ secrets.SESSION_SECRET || 'ci-only-secret-change-me-0123456789abcdef' }}
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Prepare the test database
+        run: npm run db:test:prepare
+
+      - name: Build the test deployment
+        run: npm run build:test
+
+      - name: Run the collections
+        run: npm run test:ci
+
+      - name: Upload Newman reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: newman-reports
+          path: test-results/
+          if-no-files-found: warn
+          retention-days: 30

@@ -1,0 +1,327 @@
+{
+  "info": {
+    "name": "IMS Smoke Test",
+    "description": "Fast gate before formal testing: health, login, intake, approval, sale, report.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "intakeItemId",
+      "value": ""
+    },
+    {
+      "key": "saleItemId",
+      "value": ""
+    },
+    {
+      "key": "pendingItemId",
+      "value": ""
+    },
+    {
+      "key": "staffId",
+      "value": ""
+    },
+    {
+      "key": "staff2Id",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Smoke",
+      "description": "Runs in about two seconds.",
+      "item": [
+        {
+          "name": "Health check",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/health"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 healthy\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"database up\", () => pm.expect(pm.response.json().database).to.eql(\"up\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login staff",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{staffUsername}}\",\n  \"password\": \"{{staffPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"login returns 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"role is STAFF\", () => pm.expect(pm.response.json().user.role).to.eql(\"STAFF\"));",
+                  "pm.collectionVariables.set(\"staffId\", pm.response.json().user.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create item",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/items",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"SMOKE-Item\",\n  \"brand\": \"Uniqlo\",\n  \"category\": \"Smoke\",\n  \"size\": \"M\",\n  \"condition\": \"Good\",\n  \"price\": 500\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"201 created as Pending\", () => {",
+                  "  pm.response.to.have.status(201);",
+                  "  pm.expect(pm.response.json().item.status).to.eql(\"Pending\");",
+                  "});",
+                  "pm.collectionVariables.set(\"smokeItemId\", pm.response.json().item.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login reviewer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{reviewerUsername}}\",\n  \"password\": \"{{reviewerPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"login returns 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"role is REVIEWER\", () => pm.expect(pm.response.json().user.role).to.eql(\"REVIEWER\"));",
+                  "pm.collectionVariables.set(\"reviewerId\", pm.response.json().user.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Approve item",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/items/{{smokeItemId}}/review",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"decision\": \"approve\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 In Stock\", () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(pm.response.json().status).to.eql(\"In Stock\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login staff",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{staffUsername}}\",\n  \"password\": \"{{staffPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"login returns 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"role is STAFF\", () => pm.expect(pm.response.json().user.role).to.eql(\"STAFF\"));",
+                  "pm.collectionVariables.set(\"staffId\", pm.response.json().user.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Sell item",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/items/{{smokeItemId}}/sell"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 Sold\", () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(pm.response.json().status).to.eql(\"Sold\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{adminUsername}}\",\n  \"password\": \"{{adminPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"login returns 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"role is ADMIN\", () => pm.expect(pm.response.json().user.role).to.eql(\"ADMIN\"));",
+                  "pm.collectionVariables.set(\"adminId\", pm.response.json().user.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reports summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/reports/summary"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 report\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"totals present\", () => pm.expect(pm.response.json().counts.Pending).to.be.a(\"number\"));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

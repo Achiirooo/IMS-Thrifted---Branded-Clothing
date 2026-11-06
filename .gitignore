@@ -9,9 +9,11 @@
 !.yarn/plugins
 !.yarn/releases
 !.yarn/versions
+.kilo
 
 # testing
 /coverage
+/test-results
 
 # next.js
 /.next/
@@ -33,6 +35,8 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+# ...but ship the template so a fresh clone knows what to set
+!.env.example
 
 # vercel
 .vercel
@@ -41,10 +45,14 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# local SQLite database
+# local SQLite databases (dev + test)
 /prisma/dev.db
 /prisma/dev.db-journal
 /prisma/dev.db-wal
 /prisma/dev.db-shm
+/prisma/test.db
+/prisma/test.db-journal
+/prisma/test.db-wal
+/prisma/test.db-shm
 
 /src/generated/prisma
