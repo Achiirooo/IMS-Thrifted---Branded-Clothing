@@ -226,6 +226,11 @@ npm run test:smoke          # in a second terminal
 npm run test:api
 ```
 
+`npm run test:flow` is the single-command equivalent — it runs
+`db:test:prepare && build:test && test:ci` end to end (prepare the test
+database, build the test deployment, wait for `/api/health`, then run all
+report collections).
+
 The collections create their own items through the API, so they can be run repeatedly and in any
 order. See `postman/README.md` for the endpoint list, environment variables, and how to open the
 collections in the Postman app. Screen-level checks that cannot be automated (two-click
