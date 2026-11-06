@@ -2,6 +2,9 @@
   "name": "ims-thrifted-clothing",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=20.9.0"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -9,7 +12,24 @@
     "lint": "eslint",
     "db:migrate": "prisma migrate dev",
     "db:seed": "prisma db seed",
-    "db:seed:items": "tsx prisma/seed-items.ts"
+    "db:seed:items": "tsx prisma/seed-items.ts",
+    "dev:test": "cross-env NODE_ENV=test next dev -p 3001",
+    "build:test": "cross-env NODE_ENV=test next build",
+    "start:test": "cross-env NODE_ENV=test next start -p 3001",
+    "db:test:reset": "cross-env DATABASE_URL=file:./test.db prisma migrate reset --force",
+    "db:test:items": "cross-env DATABASE_URL=file:./test.db tsx prisma/seed-items.ts --force",
+    "db:test:fixtures": "cross-env DATABASE_URL=file:./test.db tsx prisma/seed-test-fixtures.ts",
+    "db:test:prepare": "npm run db:test:reset && npm run db:test:items && npm run db:test:fixtures",
+    "test:smoke": "newman run postman/IMS-Smoke.postman_collection.json -e postman/IMS.local.postman_environment.json",
+    "test:module1": "newman run postman/IMS-Module-1-Intake-Approval.postman_collection.json -e postman/IMS.local.postman_environment.json",
+    "test:module2": "newman run postman/IMS-Module-2-Sales-Stock-Reports.postman_collection.json -e postman/IMS.local.postman_environment.json",
+    "test:api": "npm run test:module1 && npm run test:module2",
+    "test:report:smoke": "newman run postman/IMS-Smoke.postman_collection.json -e postman/IMS.local.postman_environment.json -r cli,json,htmlextra --reporter-json-export test-results/smoke.json --reporter-htmlextra-export test-results/smoke.html --reporter-htmlextra-title \"IMS Smoke Test\"",
+    "test:report:module1": "newman run postman/IMS-Module-1-Intake-Approval.postman_collection.json -e postman/IMS.local.postman_environment.json -r cli,json,htmlextra --reporter-json-export test-results/module-1.json --reporter-htmlextra-export test-results/module-1.html --reporter-htmlextra-title \"IMS Module 1 — Intake & Approval\"",
+    "test:report:module2": "newman run postman/IMS-Module-2-Sales-Stock-Reports.postman_collection.json -e postman/IMS.local.postman_environment.json -r cli,json,htmlextra --reporter-json-export test-results/module-2.json --reporter-htmlextra-export test-results/module-2.html --reporter-htmlextra-title \"IMS Module 2 — Sales, Stock & Reports\"",
+    "test:report": "npm run test:report:smoke && npm run test:report:module1 && npm run test:report:module2",
+    "test:ci": "start-server-and-test start:test http://localhost:3001/api/health \"npm run test:report\"",
+    "test:flow": "npm run db:test:prepare && npm run build:test && npm run test:ci"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
@@ -27,9 +47,13 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "cross-env": "^10.1.0",
     "dotenv": "^18.0.7",
     "eslint": "^9",
     "eslint-config-next": "16.4.3",
+    "newman": "^6.2.3",
+    "newman-reporter-htmlextra": "^1.23.1",
+    "start-server-and-test": "^3.0.13",
     "tailwindcss": "^4",
     "tsx": "^4.23.15",
     "typescript": "^5"
