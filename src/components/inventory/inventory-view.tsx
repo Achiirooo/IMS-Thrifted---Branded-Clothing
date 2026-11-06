@@ -1,8 +1,12 @@
 import Link from "next/link";
-import type { Prisma } from "@prisma/client";
 import type { SessionUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { ITEM_STATUSES, type ItemStatus } from "@/lib/constants";
+import {
+  buildItemOrderBy,
+  buildItemWhere,
+  scopeForUser,
+} from "@/lib/services/queries";
 import { AppShell } from "@/components/app-shell";
 import { StatusBadge } from "@/components/ui/badge";
 import { ChevronLeftIcon, ChevronRightIcon, InboxIcon, PlusIcon } from "@/components/icons";
@@ -61,39 +65,9 @@ export async function InventoryView({
     Number.isFinite(min) && min > 0 ? true : Number.isFinite(max) && max > 0;
 
   // What this user is allowed to see at all (STAFF: only their own items).
-  const scope: Prisma.ItemWhereInput =
-    user.role === "STAFF" ? { createdById: user.userId } : {};
-
-  const where: Prisma.ItemWhereInput = { ...scope };
-  if (status) where.status = status;
-  if (size) where.size = size;
-  if (condition) where.condition = condition;
-  if (hasPriceFilter) {
-    where.price = {
-      ...(Number.isFinite(min) && min > 0 ? { gte: min } : {}),
-      ...(Number.isFinite(max) && max > 0 ? { lte: max } : {}),
-    };
-  }
-  if (q) {
-    const codeMatch = /^itm-?(\d+)$/i.exec(q);
-    where.OR = [
-      { name: { contains: q } },
-      { brand: { contains: q } },
-      { category: { contains: q } },
-      ...(codeMatch ? [{ id: Number(codeMatch[1]) }] : []),
-    ];
-  }
-
-  const orderBy: Prisma.ItemOrderByWithRelationInput =
-    sort === "oldest"
-      ? { createdAt: "asc" }
-      : sort === "price-desc"
-        ? { price: "desc" }
-        : sort === "price-asc"
-          ? { price: "asc" }
-          : sort === "brand"
-            ? { brand: "asc" }
-            : { createdAt: "desc" };
+  const scope = scopeForUser(user);
+  const where = buildItemWhere({ q, status, size, condition, min, max }, scope);
+  const orderBy = buildItemOrderBy(sort);
 
   const [items, total, grouped, sizeRows, conditionRows] = await Promise.all([
     prisma.item.findMany({

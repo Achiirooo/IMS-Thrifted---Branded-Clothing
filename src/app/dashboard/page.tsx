@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { LOW_STOCK_THRESHOLD } from "@/lib/constants";
+import { getAdminStats } from "@/lib/services/queries";
 import { AppShell } from "@/components/app-shell";
 import { StatCards } from "@/components/inventory/stat-cards";
 import { RoleBadge } from "@/components/ui/badge";
@@ -86,46 +87,14 @@ export default async function DashboardPage() {
   let lowStock: { category: string; count: number }[] = [];
 
   if (isAdmin) {
-    const [grouped, inStockByCategory, categories] = await Promise.all([
-      prisma.item.groupBy({
-        by: ["status"],
-        _count: { _all: true },
-        _sum: { price: true },
-      }),
-      prisma.item.groupBy({
-        by: ["category"],
-        where: { status: "In Stock" },
-        _count: { _all: true },
-      }),
-      prisma.item.findMany({
-        distinct: ["category"],
-        select: { category: true },
-        orderBy: { category: "asc" },
-      }),
-    ]);
-
-    const countFor = (status: string) =>
-      grouped.find((row) => row.status === status)?._count._all ?? 0;
-
+    const stats = await getAdminStats();
     adminStats = {
-      inStock: countFor("In Stock"),
-      pending: countFor("Pending"),
-      sold: countFor("Sold"),
-      revenue: grouped.find((row) => row.status === "Sold")?._sum.price ?? 0,
+      inStock: stats.inStock,
+      pending: stats.pending,
+      sold: stats.sold,
+      revenue: stats.revenue,
     };
-
-    const inStockCounts = new Map(
-      inStockByCategory.map((row) => [row.category, row._count._all]),
-    );
-    lowStock = categories
-      .map((row) => ({
-        category: row.category,
-        count: inStockCounts.get(row.category) ?? 0,
-      }))
-      .filter((row) => row.count <= LOW_STOCK_THRESHOLD)
-      .sort(
-        (a, b) => a.count - b.count || a.category.localeCompare(b.category),
-      );
+    lowStock = stats.lowStock;
   }
 
   return (

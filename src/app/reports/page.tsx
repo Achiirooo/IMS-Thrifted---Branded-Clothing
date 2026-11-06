@@ -1,5 +1,6 @@
 import { requireRole } from "@/lib/auth";
-import { prisma } from "@/lib/db";
+import { type ItemStatus } from "@/lib/constants";
+import { getReportsSummary } from "@/lib/services/queries";
 import { AppShell } from "@/components/app-shell";
 import { StatusBadge } from "@/components/ui/badge";
 import { ChartIcon, InboxIcon } from "@/components/icons";
@@ -23,45 +24,18 @@ function formatDate(value: Date) {
 export default async function ReportsPage() {
   const user = await requireRole("ADMIN");
 
-  const [grouped, rejectionReasons, history, totalItems] = await Promise.all([
-    prisma.item.groupBy({
-      by: ["status"],
-      _count: { _all: true },
-      _sum: { price: true },
-    }),
-    prisma.item.findMany({
-      where: { rejectionReason: { not: null } },
-      orderBy: { createdAt: "desc" },
-      take: 25,
-      select: {
-        id: true,
-        name: true,
-        brand: true,
-        category: true,
-        rejectionReason: true,
-        createdAt: true,
-      },
-    }),
-    prisma.statusLog.findMany({
-      orderBy: { changedAt: "desc" },
-      take: 50,
-      include: {
-        item: { select: { id: true, name: true, brand: true } },
-        changedBy: { select: { displayName: true, username: true } },
-      },
-    }),
-    prisma.item.count(),
-  ]);
+  const summary = await getReportsSummary();
+  const {
+    counts,
+    revenue,
+    rejectionReasons,
+    statusHistory: history,
+    totalItems,
+  } = summary;
 
-  const countFor = (status: string) =>
-    grouped.find((row) => row.status === status)?._count._all ?? 0;
-  const valueFor = (status: string) =>
-    grouped.find((row) => row.status === status)?._sum.price ?? 0;
-
-  const pending = countFor("Pending");
-  const inStock = countFor("In Stock");
-  const sold = countFor("Sold");
-  const revenue = valueFor("Sold");
+  const countFor = (status: ItemStatus) => counts[status] ?? 0;
+  const valueFor = (status: ItemStatus) =>
+    summary.totals.find((row) => row.status === status)?.value ?? 0;
 
   return (
     <AppShell
@@ -77,9 +51,9 @@ export default async function ReportsPage() {
     >
       <div className="grid gap-3.5 sm:grid-cols-2 xl:grid-cols-4">
         {[
-          { label: "Pending", value: String(pending), hint: "Waiting for review" },
-          { label: "In Stock", value: String(inStock), hint: "Available to sell" },
-          { label: "Sold", value: String(sold), hint: "All time" },
+          { label: "Pending", value: String(countFor("Pending")), hint: "Waiting for review" },
+          { label: "In Stock", value: String(countFor("In Stock")), hint: "Available to sell" },
+          { label: "Sold", value: String(countFor("Sold")), hint: "All time" },
           { label: "Revenue", value: money(revenue), hint: "From sold items" },
         ].map((card) => (
           <div key={card.label} className="card p-5">
@@ -215,16 +189,16 @@ export default async function ReportsPage() {
                       {formatDate(log.changedAt)}
                     </td>
                     <td className="px-4 py-3.5">
-                      <p className="text-[12.5px] font-medium text-ink">{log.item.name}</p>
+                      <p className="text-[12.5px] font-medium text-ink">{log.itemName}</p>
                       <p className="text-[11px] text-muted">
-                        ITM-{String(log.item.id).padStart(3, "0")} · {log.item.brand}
+                        ITM-{String(log.itemId).padStart(3, "0")} · {log.itemBrand}
                       </p>
                     </td>
                     <td className="px-4 py-3.5 text-[11.5px] text-ink/80">
                       {log.oldStatus ? `${log.oldStatus} → ${log.newStatus}` : "Created"}
                     </td>
                     <td className="px-4 py-3.5 text-[12px] text-ink/80">
-                      {log.changedBy.displayName ?? log.changedBy.username}
+                      {log.changedBy}
                     </td>
                     <td className="px-4 py-3.5 text-[11.5px] text-muted">
                       {log.reason ?? "—"}

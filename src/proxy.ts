@@ -33,6 +33,8 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Run on every route except Next.js internals and static files.
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  // Run on every route except Next.js internals, static files and the REST API.
+  // /api routes do their own authentication and must answer with JSON status
+  // codes (401/403) instead of a redirect to /login.
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
 };
