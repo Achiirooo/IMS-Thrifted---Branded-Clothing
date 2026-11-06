@@ -4,9 +4,10 @@ Companion to `Documents/Test Plan IMS for Thrifted & Branded Surplus Clothing.pd
 Each case traces to a Test Plan scenario (IMS-01 to IMS-15) and a WBS task.
 
 - **Build under test:** `main` after IMS-03-02 / IMS-04-01 / IMS-04-02
-- **Environment:** local `npm run dev` at <http://localhost:3000>, SQLite `prisma/dev.db`
+- **Environment:** test build `npm run build:test` + `npm run start:test` at
+  <http://localhost:3001>, SQLite `prisma/test.db`
 - **Accounts:** `staff1` / `staff123`, `reviewer1` / `reviewer123`, `admin1` / `admin123`
-- **Dataset:** `npm run db:seed:items -- --force` (2,000 items, 30% Pending / 50% In Stock / 20% Sold)
+- **Dataset:** `npm run db:test:prepare` (2,000 items + `staff2` + low/healthy stock fixtures)
 
 ## Conventions
 
@@ -18,6 +19,18 @@ Each case traces to a Test Plan scenario (IMS-01 to IMS-15) and a WBS task.
 
 Status values in the build: `Pending`, `In Stock`, `Sold`. Rejections keep the item `Pending`
 and store the reason on the item and in `StatusLog`.
+
+## Automation coverage
+
+The API-level rules are automated in two Postman collections run with Newman against the test
+environment (see [postman/README.md](./postman/README.md) and `SETUP.md`). The `Status` column
+below records what the collections already cover; the remaining cases are manual.
+
+| Collection | Test cases |
+| --- | --- |
+| `npm run test:module1` | TC-01, TC-02, TC-03, TC-04, TC-05 (RBAC half), TC-06, TC-07, TC-08, TC-10, TC-11, TC-12, TC-13 |
+| `npm run test:module2` | TC-15, TC-16, TC-17, TC-18, TC-19, TC-20, TC-21, TC-22 (API scope), TC-23, TC-24, TC-25, TC-26, TC-27 |
+| Manual | TC-04 (UI flow), TC-05 (browser), TC-09 (photo gap), TC-14 (click count), TC-22 (list/detail UI), TC-28 (DB inspection), TC-29 (tampered cookie) |
 
 ## 1. Authentication and RBAC
 

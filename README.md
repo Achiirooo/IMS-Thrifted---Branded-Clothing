@@ -108,10 +108,28 @@ npm run db:seed:items -- --force
 
 ## Testing
 
-Manual test cases are in [TEST-CASES.md](./TEST-CASES.md), traced to the Test Plan scenarios
-IMS-01 to IMS-15. The Postman/Newman collection is still to be built in Week 11.
+Two environments run side by side: development on <http://localhost:3000> with `prisma/dev.db`,
+and test on <http://localhost:3001> with a disposable `prisma/test.db`. See
+[SETUP.md](./SETUP.md#environments) for the setup and reset commands.
+
+```bash
+npm run db:test:prepare     # known-state test database
+npm run build:test
+npm run start:test          # :3001
+npm run test:smoke          # in another terminal
+npm run test:api
+```
+
+The automated system tests are Postman collections run with Newman, grouped by module:
+
+- **Module 1 — Item Intake & Approval** (`npm run test:module1`): IMS-01…IMS-08, status rules,
+  rejection reason, RBAC.
+- **Module 2 — Sales, Stock, Search & Reports** (`npm run test:module2`): IMS-08…IMS-15,
+  low-stock alerts, search timing, totals, and status logging.
+
+Manual, screen-level cases are in [TEST-CASES.md](./TEST-CASES.md), traced to IMS-01…IMS-15.
+Collection and endpoint details are in [postman/README.md](./postman/README.md).
 
 ## Out of scope (Week 11 and later)
 
-- Postman collection and API endpoints
 - Acceptance testing, deployment, and final documentation
