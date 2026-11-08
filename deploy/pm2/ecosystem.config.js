@@ -1,6 +1,6 @@
 // PM2 ecosystem file for SQ-Way IMS on a VPS.
 // Copy to /opt/ims/ecosystem.config.js and adjust:
-//   - cwd         -> where you cloned the repo on the VPS (default /opt/ims)
+//   - cwd         -> where you cloned the repo on the VPS (/opt/IMS-Thrifted---Branded-Clothing)
 //   - DATABASE_URL, SESSION_SECRET -> set in .env / .env.test (gitignored)
 //   - port        -> production uses 3005 because 3000 is taken by KaAyos
 //
@@ -14,7 +14,7 @@ module.exports = {
       name: 'ims-prod',
       script: 'npm',
       args: 'run start -- -p 3005',
-      cwd: '/opt/ims',
+      cwd: '/opt/IMS-Thrifted---Branded-Clothing',
       instances: 1,
       autorestart: true,
       watch: false,
@@ -28,7 +28,7 @@ module.exports = {
       name: 'ims-test',
       script: 'npm',
       args: 'run start:test',
-      cwd: '/opt/ims',
+      cwd: '/opt/IMS-Thrifted---Branded-Clothing',
       instances: 1,
       autorestart: true,
       watch: false,

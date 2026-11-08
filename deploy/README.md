@@ -9,23 +9,21 @@ subdomain, coexisting with the existing system.
 
 | File | Purpose |
 |------|---------|
-| `deploy/nginx/ims.conf` | nginx server block (80 → 443 redirect + HTTPS proxy to :3005) |
+| `deploy/nginx/ims.conf` | nginx server block (80 → 443 redirect + HTTPS proxy to :3005, domain `ims.srv1998322.hstgr.cloud`) |
 | `deploy/pm2/ecosystem.config.js` | PM2 process manager: `ims-prod` (:3005) + `ims-test` (:3001) |
 | `deploy/systemd/ims.service` | systemd unit (use PM2 OR systemd, not both) |
 
 ## Prerequisites on the VPS
 
-- Node.js >= 20.9.0 and npm >= 10
+- Node.js >= 22 (iron-session@9.0.1 requires >=22.13)
 - `npm install -g pm2`  (or use the systemd unit instead)
-- A domain pointing at the VPS (e.g. `ims.your-domain.com`)
+- A domain/subdomain pointing at the VPS IP (`187.127.123.90`) — recommended: `ims.srv1998322.hstgr.cloud`
 
 ## 1. Clone and configure the app
 
 ```bash
 ssh root@srv1998322
-cd /opt
-git clone <repo-url> ims
-cd ims
+cd /opt/IMS-Thrifted---Branded-Clothing
 npm ci
 ```
 
@@ -81,19 +79,17 @@ pm2 logs ims-prod --lines 20
 
 ```bash
 sudo cp deploy/nginx/ims.conf /etc/nginx/sites-available/ims
-# edit ims.your-domain.com and cert paths in the file
 sudo ln -s /etc/nginx/sites-available/ims /etc/nginx/sites-enabled/ims
 sudo nginx -t
 sudo systemctl reload nginx
 
 # HTTPS certificate
-sudo certbot --nginx -d ims.your-domain.com
+sudo certbot --nginx -d ims.srv1998322.hstgr.cloud
 ```
 
 ## 6. Run tests against the VPS
 
-Edit `postman/IMS.local.postman_environment.json` → set `baseUrl` to
-`https://ims.your-domain.com` (prod) or `https://test.your-domain.com` (test on :3001).
+Edit `postman/IMS.local.postman_environment.json` → set `baseUrl` to `https://ims.srv1998322.hstgr.cloud` (prod) or `https://test.srv1998322.hstgr.cloud` (test on :3001).
 
 Then, from a second terminal (or locally pointing at the VPS):
 
@@ -112,3 +108,5 @@ npm run test:api
   HTTPS (nginx + certbot above).
 - Do not commit `.env` or `.env.test`. Demo accounts (`staff1/staff123`, etc.) are
   development-only — do not use them anywhere real.
+- Before certbot can issue a cert, `ims.srv1998322.hstgr.cloud` must resolve to `187.127.123.90`.
+  Add an `A` record (or wildcard `*.srv1998322.hstgr.cloud`) in your hstgr.cloud DNS pointing at the IP.

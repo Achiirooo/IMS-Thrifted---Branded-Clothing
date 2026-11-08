@@ -12,14 +12,14 @@ After=network.target
 [Service]
 Type=simple
 User=ims
-WorkingDirectory=/opt/ims
+WorkingDirectory=/opt/IMS-Thrifted---Branded-Clothing
 ExecStartPre=/usr/bin/npm ci
 ExecStart=/usr/bin/npm run start -- -p 3005
 Restart=on-failure
 RestartSec=5
 Environment=NODE_ENV=production
 Environment=PORT=3005
-EnvironmentFile=-/opt/ims/.env
+EnvironmentFile=-/opt/IMS-Thrifted---Branded-Clothing/.env
 
 [Install]
 WantedBy=multi-user.target
