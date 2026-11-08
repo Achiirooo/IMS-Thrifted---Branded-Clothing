@@ -1,0 +1,25 @@
+# systemd unit for SQ-Way IMS (alternative to PM2; use one or the other, not both).
+# Copy to /etc/systemd/system/ims.service, adjust paths, then:
+#
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now ims.service
+#   sudo systemctl status ims.service
+
+[Unit]
+Description=SQ-Way IMS production server
+After=network.target
+
+[Service]
+Type=simple
+User=ims
+WorkingDirectory=/opt/ims
+ExecStartPre=/usr/bin/npm ci
+ExecStart=/usr/bin/npm run start -- -p 3005
+Restart=on-failure
+RestartSec=5
+Environment=NODE_ENV=production
+Environment=PORT=3005
+EnvironmentFile=-/opt/ims/.env
+
+[Install]
+WantedBy=multi-user.target
